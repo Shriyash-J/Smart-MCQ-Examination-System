@@ -362,4 +362,31 @@ router.delete('/:id', protect, instructor, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/exams/:id
+router.delete('/:id', protect, instructor, async (req, res) => {
+  try {
+    const exam = await Exam.findByPk(req.params.id);
+    if (!exam) {
+      return res.status(404).json({ message: 'Exam not found' });
+    }
+
+    if (exam.createdBy !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Delete all results for this exam first
+    await Result.destroy({ where: { examId: exam.id } });
+    
+    // Then delete the exam (questions will cascade automatically if set)
+    await exam.destroy();
+
+    res.json({ message: 'Exam and all associated submissions deleted successfully' });
+  } catch (error) {
+    console.error('Delete exam error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
 module.exports = router;

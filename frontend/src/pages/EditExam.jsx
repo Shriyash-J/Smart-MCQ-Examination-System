@@ -142,6 +142,8 @@ const EditExam = () => {
     }
   };
 
+  
+
   if (loading) {
     return <div className="text-center py-10">Loading exam data...</div>;
   }
