@@ -30,6 +30,10 @@ const Exam = sequelize.define('Exam', {
       model: 'Users',
       key: 'id'
     }
+  },
+  isArchived: {
+  type: DataTypes.BOOLEAN,
+  defaultValue: false
   }
 });
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const Proctor = ({ examId, onViolation }) => {
+const Proctor = ({ examId, onViolation, compact = false }) => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -33,10 +33,8 @@ const Proctor = ({ examId, onViolation }) => {
   const logViolation = useCallback(async (type, details = {}) => {
     console.log(`🚨 Violation detected: ${type}`, details);
     
-    // Update local state
     setLocalViolations(prev => prev + 1);
     
-    // Notify parent component (TakeExam) - ensure callback exists
     if (typeof onViolation === 'function') {
       console.log('📢 Notifying parent of violation');
       onViolation({ type, details, timestamp: new Date().toISOString() });
@@ -44,7 +42,6 @@ const Proctor = ({ examId, onViolation }) => {
       console.warn('⚠️ onViolation is not a function!');
     }
 
-    // Send to backend
     try {
       await axios.post(`${API_URL}/proctoring/log`, {
         examId,
@@ -76,7 +73,6 @@ const Proctor = ({ examId, onViolation }) => {
           new faceapi.TinyFaceDetectorOptions()
         ).withFaceLandmarks();
 
-        // Draw on canvas
         const canvas = canvasRef.current;
         const displaySize = { width: video.videoWidth, height: video.videoHeight };
         faceapi.matchDimensions(canvas, displaySize);
@@ -142,15 +138,46 @@ const Proctor = ({ examId, onViolation }) => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [logViolation]);
 
-  // Auto-enter fullscreen on mount
+  // Auto-enter fullscreen on mount (only if not compact mode)
   useEffect(() => {
-    enterFullscreen();
-  }, []);
+    if (!compact) {
+      enterFullscreen();
+    }
+  }, [compact]);
 
   if (!modelsLoaded) {
-    return <div className="p-4 text-center text-sm">Loading face detection...</div>;
+    return compact ? (
+      <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse" />
+    ) : (
+      <div className="p-4 text-center text-sm">Loading face detection...</div>
+    );
   }
 
+  // COMPACT MODE - Larger circular webcam (96x96px) for better visibility
+  if (compact) {
+    return (
+      <div className="relative inline-block">
+        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 ${facePresent ? 'border-green-500' : 'border-red-500'}`}>
+          <Webcam
+            ref={webcamRef}
+            audio={false}
+            screenshotFormat="image/jpeg"
+            videoConstraints={{ width: 320, height: 240, facingMode: 'user' }}
+            className="w-full h-full object-cover"
+          />
+          <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full hidden" />
+        </div>
+        <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${facePresent ? 'bg-green-500' : 'bg-red-500'}`} />
+        {warning && (
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded whitespace-nowrap">
+            {warning}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // FULL MODE - For dedicated proctoring view (optional)
   return (
     <div className="relative">
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
@@ -170,7 +197,7 @@ const Proctor = ({ examId, onViolation }) => {
             {facePresent ? '✅ Face detected' : '❌ Face not detected'}
           </span>
           <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-            Local: {localViolations}
+            Violations: {localViolations}
           </span>
         </div>
         {warning && <p className="text-xs text-red-500 mt-1">{warning}</p>}

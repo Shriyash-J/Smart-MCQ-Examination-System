@@ -1,15 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --primary: #4361ee;
+    --primary-dark: #3a0ca3;
+    --secondary: #f72585;
+    --success: #06d6a0;
+    --warning: #ffd166;
+    --danger: #ef476f;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+
+  /* Ensure all text has minimum contrast */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition;
+    @apply bg-gradient-to-r from-[#4361ee] to-[#3a0ca3] text-white px-5 py-2.5 rounded-xl font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100;
   }
+  
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition;
+    @apply bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200;
   }
+  
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200;
   }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6;
+  }
+  
+  .stat-card {
+    @apply bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 border border-gray-100 shadow-sm;
+  }
+
+  /* ===== FALLBACK UTILITIES (guaranteed visibility) ===== */
+  .bg-primary-fallback {
+    background-color: #4361ee; /* solid fallback */
+  }
+  
+  .text-on-primary {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .login-left-panel {
+    @apply bg-primary-fallback;
+    /* Gradient overlay for depth, but solid base ensures text visibility */
+    background-image: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+  }
+}
+
+/* ===== CUSTOM ANIMATIONS ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Skeleton loader */
+.skeleton {
+  @apply bg-gray-200 rounded animate-pulse;
+}
+
+/* ===== ADDITIONAL SAFETY FOR LOGIN PAGE ===== */
+/* This ensures the left panel always has a dark background even if Tailwind fails */
+.brand-panel {
+  background: linear-gradient(135deg, #4361ee, #1e3a8a);
+  color: white;
+}
+
+.brand-panel * {
+  color: white !important;
+}
+
+/* Improve contrast for any text on dark backgrounds */
+.bg-dark-safe {
+  background-color: #1e1b4b;
+}
+
+/* Input focus states for better UX */
+input:focus {
+  outline: none;
+  ring: 2px solid var(--primary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

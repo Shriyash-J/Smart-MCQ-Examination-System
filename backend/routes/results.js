@@ -35,17 +35,25 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   GET /api/results/:id
+// @desc    Get detailed result with question breakdown
+// @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
     const result = await Result.findByPk(req.params.id, {
       include: [
-        { model: Exam, include: [{ model: Question, as: 'questions' }] },
+        {
+          model: Exam,
+          include: [{ model: Question, as: 'questions' }]
+        },
         { model: User, as: 'student', attributes: ['id', 'name', 'email'] }
       ]
     });
 
-    if (!result) return res.status(404).json({ message: 'Result not found' });
+    if (!result) {
+      return res.status(404).json({ message: 'Result not found' });
+    }
 
+    // Authorization checks
     if (req.user.role === 'student' && result.studentId !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -53,10 +61,69 @@ router.get('/:id', protect, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json(result);
+    // Prepare detailed question-wise analysis
+    const questionsDetail = result.Exam.questions.map((question, idx) => {
+      const studentAnswer = result.answers[idx];
+      let isCorrect = false;
+      let marksObtained = 0;
+
+      if (question.questionType === 'manual') {
+        // Manual questions: show pending or instructor-graded score
+        marksObtained = result.gradingStatus === 'graded' ? 
+          (typeof studentAnswer === 'object' ? studentAnswer.score : 0) : 0;
+        isCorrect = null; // Not auto-graded
+      } else if (question.questionType === 'msq') {
+        // MSQ: check if answer array matches correctAnswers array
+        const correct = question.correctAnswers || [];
+        const student = studentAnswer || [];
+        if (question.partialMarking) {
+          const correctSelected = student.filter(a => correct.includes(a)).length;
+          marksObtained = (correctSelected / correct.length) * question.marks;
+          isCorrect = correctSelected === correct.length && student.length === correct.length;
+        } else {
+          isCorrect = student.length === correct.length && 
+                      student.every(a => correct.includes(a));
+          marksObtained = isCorrect ? question.marks : 0;
+        }
+      } else {
+        // MCQ, True/False, Diagram
+        const correct = question.correctAnswers?.[0];
+        isCorrect = studentAnswer === correct;
+        marksObtained = isCorrect ? question.marks : 0;
+      }
+
+      return {
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        options: question.options,
+        diagramUrl: question.diagramUrl,
+        marks: question.marks,
+        studentAnswer: studentAnswer,
+        // Only include correct answer for instructors or if exam settings allow
+        correctAnswer: question.correctAnswers,
+        isCorrect,
+        marksObtained,
+        expectedAnswer: question.expectedAnswer
+      };
+    });
+
+    res.json({
+      id: result.id,
+      examTitle: result.Exam.title,
+      studentName: result.student.name,
+      studentEmail: result.student.email,
+      submittedAt: result.submittedAt,
+      score: result.score,
+      totalMarks: result.totalMarks,
+      percentage: ((result.score / result.totalMarks) * 100).toFixed(1),
+      gradingStatus: result.gradingStatus,
+      feedback: result.feedback,
+      questions: questionsDetail
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error fetching detailed result:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
