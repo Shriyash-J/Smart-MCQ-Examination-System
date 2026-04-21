@@ -87,12 +87,12 @@ const Login = () => {
       <Toaster position="top-right" />
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Left Panel - Solid dark background with gradient overlay (guaranteed visible) */}
-        <div className="w-full lg:w-1/2 bg-indigo-900 p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+        <div className="w-full lg:w-1/2 bg-gradient-to-br from-purple-700 via-purple-800 to-pink-700 p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
           {/* Animated gradient blobs - purely decorative */}
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-20 -left-20 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-40 right-10 w-96 h-96 bg-purple-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-yellow-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-20 -left-20 w-80 h-80 bg-white rounded-full blur-2xl animate-pulse" />
+            <div className="absolute bottom-40 right-10 w-96 h-96 bg-purple-400 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-yellow-400 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
           </div>
 
           <div className="relative z-10">
