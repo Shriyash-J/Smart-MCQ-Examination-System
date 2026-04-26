@@ -9,7 +9,7 @@ const resultRoutes = require('./routes/results');
 
 const app = express();
 app.use(cors({
-  origin: 'https://smart-mcq-system.vercel.app'
+  origin: 'https://smart-mcq-examination-system.vercel.app'
 }));
 app.use(express.json());
 
