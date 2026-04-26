@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false   // necessary for Neon
+        rejectUnauthorized: false   // needed for Neon
       }
     },
     logging: false,
